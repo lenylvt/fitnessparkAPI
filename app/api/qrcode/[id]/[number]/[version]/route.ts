@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generateQRCodePayload, getEpochPlusOneMinute } from "@/app/utils/payload";
 import QRCode from "qrcode";
-import { writeFile } from "fs/promises";
-import path from "path";
 
 export async function GET(
   request: NextRequest,
@@ -24,15 +22,12 @@ export async function GET(
       margin: 2,
     });
 
-    const publicDir = path.join(process.cwd(), "public");
-    const fileName = `qrcode-${id}-${number}-${version}.png`;
-    const filePath = path.join(publicDir, fileName);
-
-    await writeFile(filePath, qrCodeBuffer);
-
-    return NextResponse.json({
-      success: true,
-      path: `/qrcode-${id}-${number}-${version}.png`,
+    // Renvoyer directement l'image
+    return new NextResponse(qrCodeBuffer, {
+      headers: {
+        "Content-Type": "image/png",
+        "Cache-Control": "no-store",
+      },
     });
   } catch (error: any) {
     return NextResponse.json(

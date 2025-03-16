@@ -46,4 +46,32 @@ export const verifySignature = (
   const payload = `${version}+${timestamp}+${id}`;
   const generatedSignature = hmac.update(payload).digest("hex").slice(0, 6);
   return generatedSignature === signature;
+};
+
+export const findNumberFromSignature = (
+  targetSignature: string,
+  version: "QR1" | "QR2",
+  id: string,
+  timestamp: number,
+  knownNumber?: string
+): string | null => {
+  // Si on a un numéro connu, on le teste d'abord
+  if (knownNumber && verifySignature(targetSignature, version, id, timestamp, knownNumber)) {
+    return knownNumber;
+  }
+
+  // Liste des numéros connus à tester
+  const knownNumbers = [
+    "373dcbdd0c56682f602e609432ceaf35", // Numéro original
+    // Ajoutez d'autres numéros connus ici si nécessaire
+  ];
+
+  // Tester chaque numéro connu
+  for (const number of knownNumbers) {
+    if (verifySignature(targetSignature, version, id, timestamp, number)) {
+      return number;
+    }
+  }
+
+  return null;
 }; 
