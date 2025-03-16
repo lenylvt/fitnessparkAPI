@@ -18,11 +18,14 @@ export async function GET(
 
     const payload = generateQRCodePayload(id, number, getEpochPlusOneMinute(), version as "QR1" | "QR2");
     const qrCodeBuffer = await QRCode.toBuffer(payload, {
-      version: 13, // Force 13 lignes
-      width: 800,
-      margin: 1,
-      scale: 8,
-      errorCorrectionLevel: 'Q'
+      type: 'png',
+      width: 500,
+      margin: 4,
+      errorCorrectionLevel: 'L',
+      color: {
+        dark: '#000000',
+        light: '#ffffff'
+      }
     });
 
     // Renvoyer directement l'image
