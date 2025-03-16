@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { generateQRCodePayload, getEpochPlusOneMinute, verifySignature } from "@/app/utils/payload";
+import { generateQRCodePayload } from "@/app/utils/payload";
 import QRCode from "qrcode";
-import { config } from "@/app/utils/config";
 
 export async function GET(
   request: NextRequest,
@@ -9,7 +8,6 @@ export async function GET(
 ) {
   try {
     const { id, signature, timestamp, version } = params;
-    const targetNumber = config.originalNumber;
 
     if (!["QR1", "QR2"].includes(version)) {
       return NextResponse.json(
@@ -18,33 +16,15 @@ export async function GET(
       );
     }
 
-    if (!targetNumber) {
-      return NextResponse.json(
-        { error: "Numéro original non configuré" },
-        { status: 500 }
-      );
-    }
-
-    const isValid = verifySignature(
-      signature,
-      version as "QR1" | "QR2",
+    // Générer le QR code directement avec les données fournies
+    const payload = {
       id,
-      parseInt(timestamp),
-      targetNumber
-    );
+      sg: signature,
+      t: parseInt(timestamp),
+      v: version
+    };
 
-    if (!isValid) {
-      return NextResponse.json({
-        success: false,
-        message: "La signature ne correspond pas au number attendu",
-      });
-    }
-
-    // Générer un nouveau QR code
-    const newTimestamp = getEpochPlusOneMinute();
-    const newPayload = generateQRCodePayload(id, targetNumber, newTimestamp, version as "QR1" | "QR2");
-    
-    const qrCodeBuffer = await QRCode.toBuffer(newPayload, {
+    const qrCodeBuffer = await QRCode.toBuffer(JSON.stringify(payload), {
       type: 'png',
       width: 500,
       margin: 4,
