@@ -45,8 +45,11 @@ export async function GET(
     const newPayload = generateQRCodePayload(id, targetNumber, newTimestamp, version as "QR1" | "QR2");
     
     const qrCodeBuffer = await QRCode.toBuffer(newPayload, {
-      width: 205,
-      margin: 2,
+      version: 13, // Force 13 lignes
+      width: 800,
+      margin: 1,
+      scale: 8,
+      errorCorrectionLevel: 'Q'
     });
 
     // Renvoyer directement l'image
