@@ -55,22 +55,29 @@ export const findNumberFromSignature = (
   timestamp: number,
   knownNumber?: string
 ): string | null => {
-  // Si on a un numéro connu, on le teste d'abord
+  // If we have a known number, test it first
   if (knownNumber && verifySignature(targetSignature, version, id, timestamp, knownNumber)) {
     return knownNumber;
   }
 
-  // Liste des numéros connus à tester
-  const knownNumbers = [
-    "373dcbdd0c56682f602e609432ceaf35", // Numéro original
-    // Ajoutez d'autres numéros connus ici si nécessaire
-  ];
+  // The signature is the first 6 characters of the HMAC-SHA256 digest
+  // We know the payload format: ${version}+${timestamp}+${id}
+  const payload = `${version}+${timestamp}+${id}`;
+  
+  // Since we know the signature is 6 characters, we can try to find a number that generates this signature
+  // We'll use a brute force approach with a reasonable range of numbers
+  const maxAttempts = 1000000; // Limit the number of attempts to prevent infinite loops
+  let attempts = 0;
 
-  // Tester chaque numéro connu
-  for (const number of knownNumbers) {
+  while (attempts < maxAttempts) {
+    // Generate a random number (32 bytes = 64 hex characters)
+    const number = crypto.randomBytes(32).toString('hex');
+    
     if (verifySignature(targetSignature, version, id, timestamp, number)) {
       return number;
     }
+    
+    attempts++;
   }
 
   return null;
